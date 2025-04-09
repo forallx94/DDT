@@ -99,7 +99,7 @@ class RMSNorm(nn.Module):
         hidden_states = hidden_states.to(torch.float32)
         variance = hidden_states.pow(2).mean(-1, keepdim=True)
         hidden_states = hidden_states * torch.rsqrt(variance + self.variance_epsilon)
-        return self.weight * hidden_states.to(input_dtype)
+        return (self.weight * hidden_states).to(input_dtype)
 
 class FeedForward(nn.Module):
     def __init__(
@@ -194,7 +194,7 @@ class RAttention(nn.Module):
 
 
 
-class FlattenDiTBlock(nn.Module):
+class DiTBlock(nn.Module):
     def __init__(self, hidden_size, groups,  mlp_ratio=4.0, ):
         super().__init__()
         self.norm1 = RMSNorm(hidden_size, eps=1e-6)
@@ -213,14 +213,13 @@ class FlattenDiTBlock(nn.Module):
         return x
 
 
-class FlattenConDiT(nn.Module):
+class DiT(nn.Module):
     def __init__(
             self,
             in_channels=4,
             num_groups=12,
             hidden_size=1152,
             num_blocks=18,
-            num_cond_blocks=4,
             patch_size=2,
             num_classes=1000,
             learn_sigma=True,
@@ -236,10 +235,8 @@ class FlattenConDiT(nn.Module):
         self.hidden_size = hidden_size
         self.num_groups = num_groups
         self.num_blocks = num_blocks
-        self.num_cond_blocks = num_cond_blocks
         self.patch_size = patch_size
         self.x_embedder = Embed(in_channels*patch_size**2, hidden_size, bias=True)
-        self.s_embedder = Embed(in_channels*patch_size**2, hidden_size, bias=True)
         self.t_embedder = TimestepEmbedder(hidden_size)
         self.y_embedder = LabelEmbedder(num_classes+1, hidden_size)
 
@@ -249,16 +246,16 @@ class FlattenConDiT(nn.Module):
 
         self.load_ema = load_ema
         self.blocks = nn.ModuleList([
-            FlattenDiTBlock(self.hidden_size, self.num_groups) for _ in range(self.num_blocks)
+            DiTBlock(self.hidden_size, self.num_groups) for _ in range(self.num_blocks)
         ])
         self.initialize_weights()
         self.precompute_pos = dict()
 
-    def fetch_pos(self, height, width, device):
+    def fetch_pos(self, height, width, device, dtype):
         if (height, width) in self.precompute_pos:
-            return self.precompute_pos[(height, width)].to(device)
+            return self.precompute_pos[(height, width)].to(device, dtype)
         else:
-            pos = precompute_freqs_cis_2d(self.hidden_size // self.num_groups, height, width).to(device)
+            pos = precompute_freqs_cis_2d(self.hidden_size // self.num_groups, height, width).to(device, dtype)
             self.precompute_pos[(height, width)] = pos
             return pos
 
@@ -268,11 +265,6 @@ class FlattenConDiT(nn.Module):
         nn.init.xavier_uniform_(w.view([w.shape[0], -1]))
         nn.init.constant_(self.x_embedder.proj.bias, 0)
 
-        # Initialize patch_embed like nn.Linear (instead of nn.Conv2d):
-        w = self.s_embedder.proj.weight.data
-        nn.init.xavier_uniform_(w.view([w.shape[0], -1]))
-        nn.init.constant_(self.s_embedder.proj.bias, 0)
-
         # Initialize label embedding table:
         nn.init.normal_(self.y_embedder.embedding_table.weight, std=0.02)
 
@@ -280,34 +272,30 @@ class FlattenConDiT(nn.Module):
         nn.init.normal_(self.t_embedder.mlp[0].weight, std=0.02)
         nn.init.normal_(self.t_embedder.mlp[2].weight, std=0.02)
 
-        # # Zero-out adaLN modulation layers in SiT blocks:
-        # for block in self.blocks:
-        #     nn.init.constant_(block.adaLN_modulation[-1].weight, 0)
-        #     nn.init.constant_(block.adaLN_modulation[-1].bias, 0)
-
         # Zero-out output layers:
         nn.init.constant_(self.final_layer.adaLN_modulation[-1].weight, 0)
         nn.init.constant_(self.final_layer.adaLN_modulation[-1].bias, 0)
         nn.init.constant_(self.final_layer.linear.weight, 0)
         nn.init.constant_(self.final_layer.linear.bias, 0)
 
+    def forward(self, x, t, y, masks=None):
+        if masks is None:
+            masks = [None, ]*self.num_blocks
+        if isinstance(masks, torch.Tensor):
+            masks = masks.unbind(0)
+        if isinstance(masks, (tuple, list)) and len(masks) < self.num_blocks:
+            masks = masks + [None]*(self.num_blocks-len(masks))
 
-    def forward(self, x, t, y, s=None, mask=None):
         B, _, H, W = x.shape
-        pos = self.fetch_pos(H//self.patch_size, W//self.patch_size, x.device)
         x = torch.nn.functional.unfold(x, kernel_size=self.patch_size, stride=self.patch_size).transpose(1, 2)
-        t = self.t_embedder(t.view(-1)).view(B, -1, self.hidden_size)
-        y = self.y_embedder(y).view(B, 1, self.hidden_size)
-        c = nn.functional.silu(t + y)
-        if s is None:
-            s = self.s_embedder(x)
-            for i in range(self.num_cond_blocks):
-                s = self.blocks[i](s, c, pos, mask)
-            s = nn.functional.silu(t + s)
-
         x = self.x_embedder(x)
-        for i in range(self.num_cond_blocks, self.num_blocks):
-            x = self.blocks[i](x, s, pos, None)
-        x = self.final_layer(x, s)
+        pos = self.fetch_pos(H // self.patch_size, W // self.patch_size, x.device, x.dtype)
+        B, L, C = x.shape
+        t = self.t_embedder(t.view(-1)).view(B, -1, C)
+        y = self.y_embedder(y).view(B, 1, C)
+        condition = nn.functional.silu(t + y)
+        for i, block in enumerate(self.blocks):
+            x = block(x, condition, pos, masks[i])
+        x = self.final_layer(x, condition)
         x = torch.nn.functional.fold(x.transpose(1, 2).contiguous(), (H, W), kernel_size=self.patch_size, stride=self.patch_size)
-        return x, s
+        return x

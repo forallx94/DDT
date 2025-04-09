@@ -194,7 +194,7 @@ class RAttention(nn.Module):
 
 
 
-class FlattenDiTBlock(nn.Module):
+class DDTBlock(nn.Module):
     def __init__(self, hidden_size, groups,  mlp_ratio=4.0, ):
         super().__init__()
         self.norm1 = RMSNorm(hidden_size, eps=1e-6)
@@ -212,40 +212,16 @@ class FlattenDiTBlock(nn.Module):
         x = x + gate_mlp * self.mlp(modulate(self.norm2(x), shift_mlp, scale_mlp))
         return x
 
-class FlattenConvBlock(nn.Module):
-    def __init__(self, hidden_size, groups,  mlp_ratio=4.0, kernel_size=3):
-        super().__init__()
-        self.hidden_size = hidden_size
-        mlp_hidden_dim = int(hidden_size * mlp_ratio)
-        self.norm1 = RMSNorm(hidden_size, eps=1e-6)
-        self.attn = nn.Conv2d(hidden_size, hidden_size, groups=groups, kernel_size=kernel_size, stride=1, padding=kernel_size//2)
-        self.norm2 = RMSNorm(hidden_size, eps=1e-6)
-        self.mlp = FeedForward(hidden_size, mlp_hidden_dim)
-        self.adaLN_modulation = nn.Sequential(
-            nn.Linear(hidden_size, 6 * hidden_size, bias=True)
-        )
 
-    def forward(self, x,  c, pos, mask=None):
-        shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp = self.adaLN_modulation(c).chunk(6, dim=-1)
-        attn_x = modulate(self.norm1(x), shift_msa, scale_msa)
-        attn_x = attn_x.transpose(1, 2).view(-1, self.hidden_size, 16, 16).contiguous()
-        attn_x = self.attn(attn_x)
-        attn_x = attn_x.view(-1, self.hidden_size, 256).transpose(1, 2)
-        x = x + gate_msa * attn_x
-        x = x + gate_mlp * self.mlp(modulate(self.norm2(x), shift_mlp, scale_mlp))
-        return x
-
-
-class FlattenConDiT(nn.Module):
+class DDT(nn.Module):
     def __init__(
             self,
             in_channels=4,
             num_groups=12,
             hidden_size=1152,
             num_blocks=18,
-            num_cond_blocks=4,
+            num_encoder_blocks=4,
             patch_size=2,
-            kernel_size=3,
             num_classes=1000,
             learn_sigma=True,
             deep_supervision=0,
@@ -260,7 +236,7 @@ class FlattenConDiT(nn.Module):
         self.hidden_size = hidden_size
         self.num_groups = num_groups
         self.num_blocks = num_blocks
-        self.num_cond_blocks = num_cond_blocks
+        self.num_encoder_blocks = num_encoder_blocks
         self.patch_size = patch_size
         self.x_embedder = Embed(in_channels*patch_size**2, hidden_size, bias=True)
         self.s_embedder = Embed(in_channels*patch_size**2, hidden_size, bias=True)
@@ -272,12 +248,9 @@ class FlattenConDiT(nn.Module):
         self.weight_path = weight_path
 
         self.load_ema = load_ema
-        self.blocks = nn.ModuleList([])
-        for i in range(self.num_cond_blocks):
-            self.blocks.append(FlattenDiTBlock(self.hidden_size, self.num_groups))
-        for i in range(self.num_blocks-self.num_cond_blocks):
-            self.blocks.append(FlattenConvBlock(self.hidden_size, self.num_groups, kernel_size))
-
+        self.blocks = nn.ModuleList([
+            DDTBlock(self.hidden_size, self.num_groups) for _ in range(self.num_blocks)
+        ])
         self.initialize_weights()
         self.precompute_pos = dict()
 
@@ -307,11 +280,6 @@ class FlattenConDiT(nn.Module):
         nn.init.normal_(self.t_embedder.mlp[0].weight, std=0.02)
         nn.init.normal_(self.t_embedder.mlp[2].weight, std=0.02)
 
-        # # Zero-out adaLN modulation layers in SiT blocks:
-        # for block in self.blocks:
-        #     nn.init.constant_(block.adaLN_modulation[-1].weight, 0)
-        #     nn.init.constant_(block.adaLN_modulation[-1].bias, 0)
-
         # Zero-out output layers:
         nn.init.constant_(self.final_layer.adaLN_modulation[-1].weight, 0)
         nn.init.constant_(self.final_layer.adaLN_modulation[-1].bias, 0)
@@ -319,7 +287,7 @@ class FlattenConDiT(nn.Module):
         nn.init.constant_(self.final_layer.linear.bias, 0)
 
 
-    def forward(self, x, t, y, s=None):
+    def forward(self, x, t, y, s=None, mask=None):
         B, _, H, W = x.shape
         pos = self.fetch_pos(H//self.patch_size, W//self.patch_size, x.device)
         x = torch.nn.functional.unfold(x, kernel_size=self.patch_size, stride=self.patch_size).transpose(1, 2)
@@ -328,12 +296,12 @@ class FlattenConDiT(nn.Module):
         c = nn.functional.silu(t + y)
         if s is None:
             s = self.s_embedder(x)
-            for i in range(self.num_cond_blocks):
-                s = self.blocks[i](s, c, pos, None)
+            for i in range(self.num_encoder_blocks):
+                s = self.blocks[i](s, c, pos, mask)
             s = nn.functional.silu(t + s)
 
         x = self.x_embedder(x)
-        for i in range(self.num_cond_blocks, self.num_blocks):
+        for i in range(self.num_encoder_blocks, self.num_blocks):
             x = self.blocks[i](x, s, pos, None)
         x = self.final_layer(x, s)
         x = torch.nn.functional.fold(x.transpose(1, 2).contiguous(), (H, W), kernel_size=self.patch_size, stride=self.patch_size)
