@@ -19,7 +19,3 @@ class CheckpointHook(ModelCheckpoint):
             checkpoint: Dict[str, Any]
     ) -> None:
         del checkpoint["callbacks"]
-
-    # def on_exception(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", exception: BaseException) -> None:
-    #     if not "debug" in self.exception_ckpt_path:
-    #         trainer.save_checkpoint(self.exception_ckpt_path)
