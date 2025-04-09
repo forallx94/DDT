@@ -7,7 +7,16 @@ We decouple diffusion transformer into encoder-decoder design, and surpresingly 
 * As a byproduct, our DDT can reuse encoder among adjacent steps to accelerate inference.
 ## Visualizations
 ![](./figs/teaser.png)
+## Checkpoints
+Waiting for release.
+
 ## Usgae
+We use ADM evaluation suite to report FID.
+```bash
+# for installation
+pip install -r requirements.txt
+```
+
 ```bash
 # for training
 python main.py fit -c configs/repa_improved_ddt_xlen22de6_256.yaml
