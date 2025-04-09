@@ -1,4 +1,9 @@
 # DDT: Decoupled Diffusion Transformer
+arxiv link: [https://arxiv.org/abs/2504.05741](https://arxiv.org/abs/2504.05741)
+
+ImagNet256 leaderboard: [https://paperswithcode.com/sota/image-generation-on-imagenet-256x256](https://paperswithcode.com/sota/image-generation-on-imagenet-256x256)
+
+ImagNet512 leaderboard: [https://paperswithcode.com/sota/image-generation-on-imagenet-512x512](https://paperswithcode.com/sota/image-generation-on-imagenet-512x512)
 ## Introduction
 We decouple diffusion transformer into encoder-decoder design, and surpresingly that a **more substantial encoder yields performance improvements as model size increases**.
 ![](./figs/main.png)
