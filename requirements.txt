@@ -1,0 +1,3 @@
+lightning==2.5.0.post0
+omegaconf==2.3.0
+jsonargparse[signatures]>=4.27.7
