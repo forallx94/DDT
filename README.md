@@ -52,13 +52,10 @@ python main.py fit -c configs/repa_improved_ddt_xlen22de6_256.yaml
 
 ## Reference
 ```bibtex
-@ARTICLE{ddt,
-  title         = "DDT: Decoupled Diffusion Transformer",
-  author        = "Wang, Shuai and Tian, Zhi and Huang, Weilin and Wang, Limin",
-  month         =  apr,
-  year          =  2025,
-  archivePrefix = "arXiv",
-  primaryClass  = "cs.CV",
-  eprint        = "2504.05741"
+@article{wang2025ddt,
+  title={DDT: Decoupled Diffusion Transformer},
+  author={Wang, Shuai and Tian, Zhi and Huang, Weilin and Wang, Limin},
+  journal={arXiv preprint arXiv:2504.05741},
+  year={2025}
 }
 ```
