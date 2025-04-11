@@ -1,10 +1,15 @@
 # DDT: Decoupled Diffusion Transformer
-[![arXiv](https://img.shields.io/badge/arXiv-2504.05741-b31b1b.svg)](https://arxiv.org/abs/2504.05741)
-[![Paper page](https://huggingface.co/datasets/huggingface/badges/resolve/main/paper-page-sm.svg)](https://huggingface.co/papers/2504.05741)
+<div style="text-align: center;">
+  <a href="https://arxiv.org/abs/2504.05741"><img src="https://img.shields.io/badge/arXiv-2504.05741-b31b1b.svg" alt="arXiv"></a>
+  <a href="https://huggingface.co/papers/2504.05741"><img src="https://huggingface.co/datasets/huggingface/badges/resolve/main/paper-page-sm.svg" alt="Paper page"></a>
+</div>
 
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ddt-decoupled-diffusion-transformer/image-generation-on-imagenet-256x256)](https://paperswithcode.com/sota/image-generation-on-imagenet-256x256?p=ddt-decoupled-diffusion-transformer)
+<div style="text-align: center;">
+  <a href="https://paperswithcode.com/sota/image-generation-on-imagenet-256x256?p=ddt-decoupled-diffusion-transformer"><img src="https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ddt-decoupled-diffusion-transformer/image-generation-on-imagenet-256x256" alt="PWC"></a>
+  
+<a href="https://paperswithcode.com/sota/image-generation-on-imagenet-512x512?p=ddt-decoupled-diffusion-transformer"><img src="https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ddt-decoupled-diffusion-transformer/image-generation-on-imagenet-512x512" alt="PWC"></a>
+</div>
 
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ddt-decoupled-diffusion-transformer/image-generation-on-imagenet-512x512)](https://paperswithcode.com/sota/image-generation-on-imagenet-512x512?p=ddt-decoupled-diffusion-transformer)
 ## Introduction
 We decouple diffusion transformer into encoder-decoder design, and surpresingly that a **more substantial encoder yields performance improvements as model size increases**.
 ![](./figs/main.png)
