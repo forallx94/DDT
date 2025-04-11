@@ -70,7 +70,7 @@ model:
     init_args:
       num_steps: 250
       guidance: 2.0
-      timeshift: 1.5
+      timeshift: 1.0
       state_refresh_rate: 1
       guidance_interval_min: 0.3
       guidance_interval_max: 1.0
