@@ -21,7 +21,10 @@ We decouple diffusion transformer into encoder-decoder design, and surpresingly 
 ## Checkpoints
 Waiting for release.
 
-## Usgae
+## Online Demos
+Coming soon.
+
+## Usages
 We use ADM evaluation suite to report FID.
 ```bash
 # for installation
