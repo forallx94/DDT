@@ -59,3 +59,6 @@ python main.py fit -c configs/repa_improved_ddt_xlen22de6_256.yaml
   year={2025}
 }
 ```
+
+## Acknowledgement
+The code is mainly built upon [FlowDCN](https://github.com/MCG-NJU/FlowDCN), we also borrow ideas from the [REPA](https://github.com/sihyun-yu/REPA), [MAR](https://github.com/LTH14/mar) and [SiT](https://github.com/willisma/SiT).
