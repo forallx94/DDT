@@ -129,7 +129,7 @@ if __name__ == "__main__":
        timeshift=1.0
     )
     ckpt_path = os.path.join(args.ckpt_path, "model.ckpt")
-    ckpt = torch.load(args.ckpt_path, map_location="cpu")
+    ckpt = torch.load(ckpt_path, map_location="cpu")
     denoiser = load_model(ckpt, denoiser)
     denoiser = denoiser.cuda()
     vae = vae.cuda()
