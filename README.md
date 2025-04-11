@@ -19,8 +19,12 @@ We decouple diffusion transformer into encoder-decoder design, and surpresingly 
 ## Visualizations
 ![](./figs/teaser.png)
 ## Checkpoints
-Waiting for release.
+We take the off-shelf [VAE](https://huggingface.co/stabilityai/sd-vae-ft-ema) to encode image into latent space, and train the decoder with DDT.
 
+| Dataset     | Model             | Params    | FID  | HuggingFace                                              |
+|-------------|-------------------|-----------|------|----------------------------------------------------------|
+| ImageNet256 | DDT-XL/2(22en6de) | 675M | 1.26 | [🤗](https://huggingface.co/MCG-NJU/DDT-XL-22en6de-R256) |
+| ImageNet512 | DDT-XL/2(22en6de) | 675M | 1.28 | [🤗](https://huggingface.co/MCG-NJU/DDT-XL-22en6de-R512) |
 ## Online Demos
 Coming soon.
 
@@ -30,16 +34,21 @@ We use ADM evaluation suite to report FID.
 # for installation
 pip install -r requirements.txt
 ```
+```bash
+# for inference
+python main.py predict -c configs/repa_improved_ddt_xlen22de6_256.yaml --ckpt_path=XXX.ckpt
+```
+```bash 
+# extract image latent (optional)
+python3 tools/cache_imlatent4.py
+```
 
 ```bash
 # for training
 python main.py fit -c configs/repa_improved_ddt_xlen22de6_256.yaml
 ```
 
-```bash
-# for inference
-python main.py predict -c configs/repa_improved_ddt_xlen22de6_256.yaml --ckpt_path=XXX.ckpt
-```
+
 ## Reference
 ```bibtex
 @ARTICLE{ddt,
