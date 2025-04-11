@@ -1,7 +1,7 @@
 # DDT: Decoupled Diffusion Transformer
 <div style="text-align: center;">
   <a href="https://arxiv.org/abs/2504.05741"><img src="https://img.shields.io/badge/arXiv-2504.05741-b31b1b.svg" alt="arXiv"></a>
-  <a href="https://huggingface.co/papers/2504.05741"><img src="https://huggingface.co/datasets/huggingface/badges/resolve/main/paper-page-sm.svg" alt="Paper page"></a>
+    <a href="https://huggingface.co/spaces/MCG-NJU/DDT"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Online_Demo-green" alt="arXiv"></a>  
 </div>
 
 <div style="text-align: center;">
@@ -26,7 +26,9 @@ We take the off-shelf [VAE](https://huggingface.co/stabilityai/sd-vae-ft-ema) to
 | ImageNet256 | DDT-XL/2(22en6de) | 675M | 1.26 | [🤗](https://huggingface.co/MCG-NJU/DDT-XL-22en6de-R256) |
 | ImageNet512 | DDT-XL/2(22en6de) | 675M | 1.28 | [🤗](https://huggingface.co/MCG-NJU/DDT-XL-22en6de-R512) |
 ## Online Demos
-Coming soon.
+We provide online demos for DDT-XL/2(22en6de) on HuggingFace Spaces.
+
+HF spases: [https://huggingface.co/spaces/MCG-NJU/DDT](https://huggingface.co/spaces/MCG-NJU/DDT)
 
 ## Usages
 We use ADM evaluation suite to report FID.
