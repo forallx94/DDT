@@ -38,13 +38,12 @@ pip install -r requirements.txt
 # for inference
 python main.py predict -c configs/repa_improved_ddt_xlen22de6_256.yaml --ckpt_path=XXX.ckpt
 ```
-```bash 
-# extract image latent (optional)
-python3 tools/cache_imlatent4.py
-```
 
 ```bash
 # for training
+# extract image latent (optional)
+python3 tools/cache_imlatent4.py
+# train
 python main.py fit -c configs/repa_improved_ddt_xlen22de6_256.yaml
 ```
 
