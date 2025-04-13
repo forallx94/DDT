@@ -1,8 +1,6 @@
 import time
 from typing import Any, Union
 
-import pylab as pl
-
 from src.utils.patch_bugs import *
 
 import os
