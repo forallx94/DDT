@@ -2,10 +2,10 @@
 seed_everything: true
 tags:
   exp: &exp repa_improved_dit_large
-torch_hub_dir: /mnt/bn/wangshuai6/torch_hub
+torch_hub_dir: null
 huggingface_cache_dir: null
 trainer:
-  default_root_dir: /mnt/bn/wangshuai6/universal_flow_workdirs
+  default_root_dir: universal_flow_workdirs
   accelerator: auto
   strategy: auto
   devices: auto
@@ -40,7 +40,7 @@ model:
     class_path: src.models.vae.LatentVAE
     init_args:
       precompute: true
-      weight_path: /mnt/bn/wangshuai6/models/sd-vae-ft-ema/
+      weight_path: stabilityai/sd-vae-ft-ema
   denoiser:
     class_path: src.models.denoiser.improved_dit.DiT
     init_args:
