@@ -64,7 +64,32 @@ callbacks:
      max_save_num: 0
      # max_save_num: 100
 ```
-
+By default, we infer 50K images with batch size 64. You can change the number of images and classes to infer with as :
+```yaml
+# in configs/repa_improved_ddt_xlen22de6_256.yaml
+data:
+  train_dataset: imagenet256
+  train_root: /mnt/bn/wangshuai6/data/ImageNet/train
+  train_image_size: 256
+  train_batch_size: 16
+  eval_max_num_instances: 50000
+  pred_batch_size: 64
+  # pred_batch_size: 16
+  pred_num_workers: 4
+  pred_seeds: null
+  # pred_seeds: 1,2,3,4
+  pred_selected_classes: null
+  # pred_selected_classes:
+  # - 0
+  # - 1
+  num_classes: 1000
+  latent_shape:
+  - 4
+  - 32
+  - 32
+```
+`pred_selected_classes` is a list of class indices to infer, if `pred_selected_classes` is null, all classes will be inferred.
+`pred_seeds` is string of seeds for every class seprated with `,` to infer
 ```bash
 # for inference
 python main.py predict -c configs/repa_improved_ddt_xlen22de6_256.yaml --ckpt_path=XXX.ckpt
