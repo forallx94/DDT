@@ -101,6 +101,8 @@ data:
 ```bash
 # for inference
 python main.py predict -c configs/repa_improved_ddt_xlen22de6_256.yaml --ckpt_path=XXX.ckpt
+# # or specify the GPU(s) to use with as :
+CUDA_VISIBLE_DEVICES=0,1, python main.py predict -c configs/repa_improved_ddt_xlen22de6_256.yaml --ckpt_path=XXX.ckpt
 ```
 
 ```bash
