@@ -36,6 +36,35 @@ We use ADM evaluation suite to report FID.
 # for installation
 pip install -r requirements.txt
 ```
+By default, the `main.py` will use all available GPUs. You can specify the GPU(s) to use with `CUDA_VISIBLE_DEVICES`.
+or specify the number of GPUs to use with as :
+```yaml
+# in configs/repa_improved_ddt_xlen22de6_256.yaml
+trainer:
+  default_root_dir: universal_flow_workdirs
+  accelerator: auto
+  strategy: auto
+  devices: auto
+  # devices: 0,
+  # devices: 0,1
+  num_nodes: 1
+```
+By default, the `save_image_callbacks` will only save the first 100 images and npz file(to calculate FID with ADM suite). You can change the number of images to save with as :  
+```yaml
+# in configs/repa_improved_ddt_xlen22de6_256.yaml
+callbacks:
+- class_path: src.callbacks.model_checkpoint.CheckpointHook
+  init_args:
+    every_n_train_steps: 10000
+    save_top_k: -1
+    save_last: true
+- class_path: src.callbacks.save_images.SaveImagesHook
+  init_args:
+     save_dir: val
+     max_save_num: 0
+     # max_save_num: 100
+```
+
 ```bash
 # for inference
 python main.py predict -c configs/repa_improved_ddt_xlen22de6_256.yaml --ckpt_path=XXX.ckpt
