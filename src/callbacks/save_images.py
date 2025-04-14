@@ -15,7 +15,7 @@ def process_fn(image, path):
     Image.fromarray(image).save(path)
 
 class SaveImagesHook(Callback):
-    def __init__(self, save_dir="val", max_save_num=0, compressed=True):
+    def __init__(self, save_dir="val", max_save_num=100, compressed=True):
        self.save_dir = save_dir
        self.max_save_num = max_save_num
        self.compressed = compressed
