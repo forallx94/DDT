@@ -29,6 +29,13 @@ We take the off-shelf [VAE](https://huggingface.co/stabilityai/sd-vae-ft-ema) to
 We provide online demos for DDT-XL/2(22en6de) on HuggingFace Spaces.
 
 HF spases: [https://huggingface.co/spaces/MCG-NJU/DDT](https://huggingface.co/spaces/MCG-NJU/DDT)
+To host the local gradio demo(default 512 resolution), run the following command:
+```bash
+# default 512 resolution
+python app.py --config configs/repa_improved_ddt_xlen22de6_512.yaml --resolution 512 --ckpt_path=XXX256.ckpt
+# for 256 resolution 
+python app.py --config configs/repa_improved_ddt_xlen22de6_256.yaml --resolution 256 --ckpt_path=XXX512.ckpt
+```
 
 ## Usages
 We use ADM evaluation suite to report FID.
