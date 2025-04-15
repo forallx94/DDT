@@ -8,7 +8,7 @@
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ddt-decoupled-diffusion-transformer-1/image-generation-on-imagenet-256x256)](https://paperswithcode.com/sota/image-generation-on-imagenet-256x256?p=ddt-decoupled-diffusion-transformer-1)
 ## Introduction
-We decouple diffusion transformer into encoder-decoder design, and surpresingly that a **more substantial encoder yields performance improvements as model size increases**.
+We decouple diffusion transformer into encoder-decoder design, and surprisingly that a **more substantial encoder yields performance improvements as model size increases**.
 ![](./figs/main.png)
 * We achieves **1.26 FID** on ImageNet256x256 Benchmark with DDT-XL/2(22en6de).
 * We achieves **1.28 FID** on ImageNet512x512 Benchmark with DDT-XL/2(22en6de).
