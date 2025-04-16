@@ -4,18 +4,19 @@ import copy
 import lightning.pytorch as pl
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
 from torch.utils.data import DataLoader
-from src.data.dataset.randn import RandomNDataset
-from src.data.var_training import VARTransformEngine
+from src.data.dataset.randn import RandomNDataset       # 무작위 latent 샘플을 생성하는 Dataset
+from src.data.var_training import VARTransformEngine    # 배치 전처리용 엔진
 
+# DataLoader에서 여러 샘플을 묶을 때 사용하는 함수
 def collate_fn(batch):
     new_batch = copy.deepcopy(batch)
-    new_batch = list(zip(*new_batch))
+    new_batch = list(zip(*new_batch))   # 리스트의 각 요소를 feature 단위로 분리 (transpose-like)
     for i in range(len(new_batch)):
         if isinstance(new_batch[i][0], torch.Tensor):
             try:
-                new_batch[i] = torch.stack(new_batch[i], dim=0)
+                new_batch[i] = torch.stack(new_batch[i], dim=0)  # 텐서끼리 stack
             except:
-                print("Warning: could not stack tensors")
+                print("Warning: could not stack tensors")        # 실패 시 경고
     return new_batch
 
 class DataModule(pl.LightningDataModule):
@@ -40,8 +41,10 @@ class DataModule(pl.LightningDataModule):
                 latent_shape=(4,64,64),
     ):
         super().__init__()
+        # 예측용 seed 문자열을 리스트로 변환 (예: "1,2,3" → [1, 2, 3])
         pred_seeds = list(map(lambda x: int(x), pred_seeds.strip().split(","))) if pred_seeds is not None else None
 
+        # 모든 전달 받은 설정값을 멤버로 저장
         self.train_root = train_root
         self.train_image_size = train_image_size
         self.train_dataset = train_dataset
@@ -66,7 +69,7 @@ class DataModule(pl.LightningDataModule):
         self.pred_selected_classes = pred_selected_classes
 
         self._train_dataloader = None
-        self.var_transform_engine = var_transform_engine
+        self.var_transform_engine = var_transform_engine  # 배치 전처리 도구
 
     def setup(self, stage: str) -> None:
         if stage == "fit":
@@ -106,11 +109,11 @@ class DataModule(pl.LightningDataModule):
 
     def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
         if self.var_transform_engine and self.trainer.training:
-            batch = self.var_transform_engine(batch)
+            batch = self.var_transform_engine(batch) # 커스텀 전처리 적용
         return batch
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
-        global_rank = self.trainer.global_rank
+        global_rank = self.trainer.global_rank # 분산 학습을 위한 rank 정보
         world_size = self.trainer.world_size
         from torch.utils.data import DistributedSampler
         sampler = DistributedSampler(self.train_dataset, num_replicas=world_size, rank=global_rank, shuffle=True)
@@ -121,13 +124,14 @@ class DataModule(pl.LightningDataModule):
             num_workers=self.train_num_workers,
             prefetch_factor=self.train_prefetch_factor,
             sampler=sampler,
-            collate_fn=collate_fn,
+            collate_fn=collate_fn,  # 위에서 정의한 커스텀 배치 구성 함수
         )
         return self._train_dataloader
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
         global_rank = self.trainer.global_rank
         world_size = self.trainer.world_size
+        # 무작위 latent vector 기반 평가용 데이터셋 생성
         self.eval_dataset = RandomNDataset(
             latent_shape=self.latent_shape,
             num_classes=self.num_classes,

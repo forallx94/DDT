@@ -15,14 +15,24 @@ def class_fn_from_str(class_str):
 class BaseVAE(torch.nn.Module):
     def __init__(self, scale=1.0, shift=0.0):
         super().__init__()
+
+        # 내부적으로 아무것도 하지 않는 Placeholder 모델
         self.model = torch.nn.Identity()
+
+        # 인코딩 시 사용할 스케일 인자 (입력값을 나눔)
         self.scale = scale
+
+        # 인코딩 시 사용할 쉬프트 인자 (입력값에 더함)
         self.shift = shift
 
     def encode(self, x):
+        # 입력 x를 scale로 나누고 shift를 더함
+        # 예: scale=2, shift=1 이면 x → (x / 2) + 1
         return x/self.scale+self.shift
 
     def decode(self, x):
+        # encode의 반대 연산: shift를 빼고, scale을 곱함
+        # 예: x → (x - 1) * 2
         return (x-self.shift)*self.scale
 
 
